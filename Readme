@@ -1,0 +1,373 @@
+# LMS API Reference
+
+## Setup — Register routes in app.js
+
+```js
+import lmsRoutes from './routers/lmsRoutes.js';
+app.use('/api/lms', lmsRoutes);
+```
+
+All routes require JWT in the Authorization header:
+```
+Authorization: Bearer <token>
+```
+
+---
+
+## COURSES
+
+### POST /api/lms/courses
+**Role:** Tutor
+
+Request:
+```json
+{
+  "title": "React Masterclass",
+  "description": "Learn React from scratch to advanced level"
+}
+```
+Response `201`:
+```json
+{
+  "message": "Course created successfully",
+  "course": {
+    "_id": "64abc123",
+    "title": "React Masterclass",
+    "description": "Learn React from scratch to advanced level",
+    "tutorId": "64tutor456",
+    "createdAt": "2024-01-01T10:00:00.000Z"
+  }
+}
+```
+
+---
+
+### GET /api/lms/courses
+**Role:** Public
+
+Response `200`:
+```json
+{
+  "message": "Courses fetched successfully",
+  "total": 2,
+  "courses": [
+    {
+      "_id": "64abc123",
+      "title": "React Masterclass",
+      "description": "Learn React from scratch to advanced level",
+      "tutorId": { "_id": "64tutor456", "name": "John Doe", "email": "john@example.com" }
+    }
+  ]
+}
+```
+
+---
+
+### GET /api/lms/courses/:id
+**Role:** Public
+
+Response `200`:
+```json
+{
+  "message": "Course fetched successfully",
+  "course": {
+    "_id": "64abc123",
+    "title": "React Masterclass",
+    "tutorId": { "name": "John Doe", "email": "john@example.com" }
+  }
+}
+```
+
+---
+
+### PUT /api/lms/courses/:id
+**Role:** Tutor (owner only)
+
+Request:
+```json
+{ "title": "Advanced React Masterclass" }
+```
+Response `200`:
+```json
+{ "message": "Course updated successfully", "course": { ... } }
+```
+
+---
+
+### DELETE /api/lms/courses/:id
+**Role:** Tutor (owner only)
+
+Response `200`:
+```json
+{ "message": "Course and all related data deleted successfully" }
+```
+
+---
+
+## SESSIONS
+
+### POST /api/lms/courses/:courseId/sessions
+**Role:** Tutor (course owner only)
+
+Request:
+```json
+{
+  "sessionTitle": "Introduction to React",
+  "videoTitle": "React Basics - Getting Started",
+  "videoDriveLink": "https://drive.google.com/file/d/abc123/view",
+  "order": 1
+}
+```
+Response `201`:
+```json
+{
+  "message": "Session added successfully",
+  "session": {
+    "_id": "64sess789",
+    "courseId": "64abc123",
+    "sessionTitle": "Introduction to React",
+    "videoTitle": "React Basics - Getting Started",
+    "videoDriveLink": "https://drive.google.com/file/d/abc123/view",
+    "order": 1
+  }
+}
+```
+
+---
+
+### GET /api/lms/courses/:courseId/sessions
+**Role:** Authenticated
+
+Response `200`:
+```json
+{
+  "message": "Sessions fetched successfully",
+  "total": 3,
+  "sessions": [
+    {
+      "_id": "64sess789",
+      "sessionTitle": "Introduction to React",
+      "videoTitle": "React Basics - Getting Started",
+      "videoDriveLink": "https://drive.google.com/file/d/abc123/view",
+      "order": 1
+    }
+  ]
+}
+```
+
+---
+
+## TESTS
+
+### POST /api/lms/sessions/:sessionId/tests
+**Role:** Tutor
+
+Request:
+```json
+{
+  "questions": [
+    {
+      "questionText": "What is JSX?",
+      "options": ["A styling library", "JavaScript XML syntax", "A database", "None of the above"],
+      "correctAnswer": "JavaScript XML syntax"
+    },
+    {
+      "questionText": "Which hook manages state in React?",
+      "options": ["useEffect", "useState", "useRef", "useContext"],
+      "correctAnswer": "useState"
+    }
+  ]
+}
+```
+Response `201`:
+```json
+{
+  "message": "Test created successfully",
+  "test": {
+    "_id": "64test999",
+    "sessionId": "64sess789",
+    "questions": [ ... ]
+  }
+}
+```
+
+---
+
+### GET /api/lms/sessions/:sessionId/tests
+**Role:** Authenticated
+
+Response for **Student** (correct answers hidden):
+```json
+{
+  "message": "Test fetched successfully",
+  "testId": "64test999",
+  "sessionId": "64sess789",
+  "questions": [
+    {
+      "_id": "64q001",
+      "questionText": "What is JSX?",
+      "options": ["A styling library", "JavaScript XML syntax", "A database", "None of the above"]
+    }
+  ]
+}
+```
+
+Response for **Tutor** (correct answers visible — full test object returned).
+
+---
+
+### POST /api/lms/tests/:testId/submit
+**Role:** Student
+
+Request:
+```json
+{
+  "answers": [
+    { "questionId": "64q001", "answer": "JavaScript XML syntax" },
+    { "questionId": "64q002", "answer": "useState" }
+  ]
+}
+```
+Response `200`:
+```json
+{
+  "message": "Test submitted successfully",
+  "score": 100,
+  "correct": 2,
+  "total": 2,
+  "breakdown": [
+    {
+      "questionId": "64q001",
+      "questionText": "What is JSX?",
+      "yourAnswer": "JavaScript XML syntax",
+      "correctAnswer": "JavaScript XML syntax",
+      "isCorrect": true
+    }
+  ],
+  "progress": {
+    "overallScore": 100,
+    "completionStatus": "completed",
+    "completedSessions": 3,
+    "totalSessions": 3
+  }
+}
+```
+
+---
+
+## ENROLLMENT
+
+### POST /api/lms/courses/:courseId/enroll
+**Role:** Student
+
+Response `201`:
+```json
+{
+  "message": "Successfully enrolled in \"React Masterclass\"",
+  "enrollment": {
+    "_id": "64enroll111",
+    "studentId": "64student222",
+    "courseId": "64abc123"
+  }
+}
+```
+
+---
+
+### GET /api/lms/students/me/courses
+**Role:** Student
+
+Response `200`:
+```json
+{
+  "message": "Enrolled courses fetched successfully",
+  "total": 2,
+  "courses": [
+    {
+      "_id": "64abc123",
+      "title": "React Masterclass",
+      "description": "...",
+      "tutorId": { "name": "John Doe", "email": "john@example.com" }
+    }
+  ]
+}
+```
+
+---
+
+## PROGRESS
+
+### GET /api/lms/students/me/progress/:courseId
+**Role:** Student
+
+Response `200`:
+```json
+{
+  "message": "Progress fetched successfully",
+  "progress": {
+    "courseId": "64abc123",
+    "completedSessions": [
+      { "_id": "64sess789", "sessionTitle": "Introduction to React" }
+    ],
+    "totalSessions": 3,
+    "testScores": [
+      { "sessionId": { "sessionTitle": "Introduction to React" }, "score": 100 }
+    ],
+    "overallScore": 100,
+    "completionStatus": "completed"
+  }
+}
+```
+
+---
+
+### GET /api/lms/tutor/courses/:courseId/students-progress
+**Role:** Tutor (course owner only)
+
+Response `200`:
+```json
+{
+  "message": "Student progress fetched successfully",
+  "courseId": "64abc123",
+  "totalEnrolled": 2,
+  "students": [
+    {
+      "student": { "_id": "64s1", "name": "Alice", "email": "alice@example.com" },
+      "completedSessions": 3,
+      "totalSessions": 3,
+      "testScores": [
+        { "sessionId": { "sessionTitle": "Intro to React" }, "score": 90 }
+      ],
+      "overallScore": 90,
+      "completionStatus": "completed"
+    },
+    {
+      "student": { "_id": "64s2", "name": "Bob", "email": "bob@example.com" },
+      "completedSessions": 1,
+      "totalSessions": 3,
+      "testScores": [
+        { "sessionId": { "sessionTitle": "Intro to React" }, "score": 60 }
+      ],
+      "overallScore": 60,
+      "completionStatus": "in-progress"
+    }
+  ]
+}
+```
+
+---
+
+## Error Responses
+
+| Status | When |
+|--------|------|
+| 400 | Validation failure / duplicate |
+| 401 | No token / not logged in |
+| 403 | Wrong role / not the owner |
+| 404 | Resource not found |
+| 500 | Internal server error |
+
+All errors follow:
+```json
+{ "message": "Descriptive error message" }
+```
