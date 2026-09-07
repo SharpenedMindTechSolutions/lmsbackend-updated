@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://lms-frontend-smts.vercel.app',
+    'https://lmsfrontend-updated.vercel.app',
     'https://lms.sharpenedmindtechnologies.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
