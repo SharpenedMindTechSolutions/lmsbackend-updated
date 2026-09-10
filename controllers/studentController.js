@@ -1,4 +1,5 @@
-import { genSalt, hash, compare } from 'bcrypt';
+import bcrypt from 'bcryptjs';
+const { genSalt, hash, compare } = bcrypt;
 import Student from '../models/studentModel.js';
 import { jwtSecret } from '../config/config.js';
 import jwt from 'jsonwebtoken';

@@ -5,7 +5,7 @@ import Course from '../models/CourseModel.js';
 import Enrollment from '../models/EnrollmentModel.js';
 import Payment from '../models/PaymentModel.js';
 import Coupon from '../models/CouponModel.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { jwtSecret } from '../config/config.js';
 
